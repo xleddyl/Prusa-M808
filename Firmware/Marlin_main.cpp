@@ -121,6 +121,10 @@
 
 #include "cmdqueue.h"
 
+#ifdef ENABLE_GCODE_REPEAT_MARKERS
+#include "repeat.h"
+#endif
+
 //filament types
 #define FILAMENT_DEFAULT 0
 #define FILAMENT_FLEX 1
@@ -138,6 +142,10 @@
 //===========================================================================
 #ifdef SDSUPPORT
 CardReader card;
+#endif
+
+#ifdef ENABLE_GCODE_REPEAT_MARKERS
+Repeat repeat;
 #endif
 
 //used for PINDA temp calibration and pause print
@@ -805,7 +813,7 @@ int uart_putchar(char c, FILE *)
 void lcd_splash()
 {
 	lcd_clear(); // clears display and homes screen
-	lcd_printf_P(PSTR("\n Original Prusa i3\n   Prusa Research\n%20.20S"), PSTR(FW_VERSION));
+	lcd_printf_P(PSTR("\n Modified Prusa i3\n   Textreme Research\n%20.20S"), PSTR(FW_VERSION));
 }
 
 
@@ -3735,6 +3743,7 @@ extern uint8_t st_backlash_y;
 //!@n M601 - Pause print
 //!@n M602 - Resume print
 //!@n M603 - Stop print
+//!@n M808 - Set repeat markers and do looping L[count] (L or L0 for infinite loop)
 //!@n M701 - Load filament to extruder
 //!@n M702 - Unload filament
 //!@n M704 - Preload to MMU
@@ -4823,6 +4832,9 @@ void process_commands()
     */
     case 23:
       card.openFileReadFilteredGcode(strchr_pointer + 4, true);
+#ifdef ENABLE_GCODE_REPEAT_MARKERS
+      repeat.reset();  // Clear any stale markers from previous print
+#endif
       break;
 
     /*!
@@ -7108,9 +7120,34 @@ void process_commands()
     */
 
     case 603: {
+#ifdef ENABLE_GCODE_REPEAT_MARKERS
+        repeat.reset();  // Clear markers when print is stopped
+#endif
         print_stop();
     }
     break;
+
+#ifdef ENABLE_GCODE_REPEAT_MARKERS
+    /*!
+    ### M808 - Set repeat markers <a href="https://reprap.org/wiki/G-code#M808:_Repeat_Marker">M808: Repeat Marker</a>
+    Set or go to a marker for looping G-code. Only works during SD printing.
+
+    #### Usage
+
+        M808 [L<count>] [K]
+
+    #### Parameters
+    - `L` - Loop counter. Use L or L0 for infinite loop.
+    - `K` - Cancel all active loops (sent from host).
+    */
+    case 808:
+      // M808 K - Cancel all repeat markers (sent from host)
+      if (code_seen('K')) {
+        repeat.cancel();
+      }
+      // Note: M808 L and plain M808 are handled in cmdqueue.cpp early_parse
+      break;
+#endif
 
     case 850: {
     /*!

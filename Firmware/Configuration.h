@@ -363,6 +363,9 @@ your extruder heater takes 2 minutes to hit the target on heating.
 #define MIN_Z_FOR_SWAP    27 // filament change (including M600)
 #define MIN_Z_FOR_PREHEAT 10 // lcd preheat
 
+// Enable G-code M808 to set repeat markers and do looping
+#define ENABLE_GCODE_REPEAT_MARKERS
+
 #include "Configuration_adv.h"
 #include "thermistortables.h"
 

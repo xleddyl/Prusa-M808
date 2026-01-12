@@ -247,6 +247,7 @@ set(FW_SOURCES
     printer_state.cpp
     Prusa_farm.cpp
     rbuf.c
+    repeat.cpp
     Sd2Card.cpp
     SdBaseFile.cpp
     SdFatUtil.cpp
