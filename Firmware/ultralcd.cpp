@@ -47,6 +47,10 @@
 
 #include "power_panic.h"
 
+#ifdef ENABLE_GCODE_REPEAT_MARKERS
+#include "repeat.h"
+#endif
+
 static void lcd_sd_updir();
 static void lcd_mesh_bed_leveling_settings();
 #ifdef LCD_BL_PIN
@@ -7048,6 +7052,13 @@ static bool check_file(const char* filename) {
 	cmdqueue_serial_disabled = true;
 
 	menu_progressbar_init(bytesToCheck, _T(MSG_CHECKING_FILE));
+
+#ifdef ENABLE_GCODE_REPEAT_MARKERS
+	// Skip M808 processing during file check to prevent infinite loop
+	repeat.reset();
+	repeat.set_skip_processing(true);
+#endif
+
 	while (!card.eof() && !result) {
 		menu_progressbar_update(card.get_sdpos() - startPos);
 		card.sdprinting = true;
@@ -7059,6 +7070,11 @@ static bool check_file(const char* filename) {
 		manage_heater();
 #endif // CMDBUFFER_DEBUG
 	}
+
+#ifdef ENABLE_GCODE_REPEAT_MARKERS
+	repeat.set_skip_processing(false);
+	repeat.reset();
+#endif
 
 	menu_progressbar_finish();
 

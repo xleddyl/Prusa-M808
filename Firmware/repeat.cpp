@@ -13,6 +13,7 @@
 // Static member initialization
 repeat_marker_t Repeat::marker[MAX_REPEAT_NESTING];
 uint8_t Repeat::index = 0;
+bool Repeat::skip_processing = false;
 
 /**
  * Check if any repeat markers are currently active
@@ -96,6 +97,9 @@ void Repeat::cancel() {
  * @param sdpos  Current SD position (after this command)
  */
 void Repeat::early_parse_M808(const char* cmd, uint32_t sdpos) {
+  if (skip_processing) {
+    return;  // Skip during file check to prevent infinite loop
+  }
   if (!is_command_M808(cmd)) {
     return;
   }

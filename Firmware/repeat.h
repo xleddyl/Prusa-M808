@@ -21,9 +21,11 @@ class Repeat {
 private:
   static repeat_marker_t marker[MAX_REPEAT_NESTING];
   static uint8_t index;  // Current nesting depth
+  static bool skip_processing;  // Skip M808 during file check
 
 public:
   static void reset() { index = 0; }
+  static void set_skip_processing(bool skip) { skip_processing = skip; }
   static bool is_active();
   static bool is_command_M808(const char* cmd);
   static void early_parse_M808(const char* cmd, uint32_t sdpos);
